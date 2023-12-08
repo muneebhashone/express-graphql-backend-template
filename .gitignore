@@ -138,3 +138,5 @@ schema.graphql
 
 # Public Uploads
 public/uploads
+
+/data

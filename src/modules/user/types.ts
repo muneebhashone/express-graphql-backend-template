@@ -11,7 +11,7 @@ export const UserGeneralNode = interfaceType({
     t.nullable.string('email')
     t.nullable.string('phone')
     t.nullable.string('role')
-    t.nullable.dateTime('dob')
+    t.nullable.field('dob', { type: DateTime })
     t.nullable.string('country')
     t.nullable.string('city')
     t.nullable.string('state')

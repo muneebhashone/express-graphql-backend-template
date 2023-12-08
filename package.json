@@ -4,9 +4,10 @@
   "main": "dist/main.js",
   "license": "MIT",
   "scripts": {
-    "dev": "cross-env NODE_ENV=development ts-node-dev --transpile-only ./src/main.ts",
+    "dev": "ts-node-dev --respawn --poll --transpile-only ./src/main.ts",
     "seeder": "ts-node --transpile-only ./src/seeder.ts",
     "build": "rimraf dist && npx tsc",
+    "build:es": "node build.js",
     "start": "cross-env NODE_ENV=production node ./dist/src/main.js"
   },
   "devDependencies": {
@@ -32,6 +33,7 @@
     "@types/validator": "^13.7.17",
     "@types/ws": "^8.5.4",
     "@typescript-eslint/eslint-plugin": "^5.0.0",
+    "esbuild": "^0.19.8",
     "rimraf": "^5.0.1",
     "ts-node": "^10.9.1",
     "ts-node-dev": "^2.0.0",

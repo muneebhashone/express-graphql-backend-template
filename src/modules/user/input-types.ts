@@ -37,7 +37,7 @@ export const UserUpdateInputType = inputObjectType({
     t.string('firstName')
     t.string('lastName')
     t.string('email')
-    t.dateTime('dob')
+    t.field('dob', { type: DateTime })
     t.string('country')
     t.string('city')
     t.string('state')

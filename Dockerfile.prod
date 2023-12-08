@@ -1,0 +1,15 @@
+FROM node:18
+
+WORKDIR /app
+
+COPY package.json package.json
+COPY package-lock.json package-lock.json
+
+RUN npm i --force
+RUN npm i pm2 -g
+
+COPY . .
+
+RUN npm run build:es
+
+CMD ["pm2-runtime", "ecosystem.config.js"]

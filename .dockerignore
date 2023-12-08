@@ -1,0 +1,9 @@
+.git
+.github
+*Dockerfile*
+*docker-compose*
+node_modules
+data
+dist
+nexus-typegen.ts
+schema.graphql
