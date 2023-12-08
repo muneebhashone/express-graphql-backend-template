@@ -1,11 +1,11 @@
 module.exports = {
   apps: [
     {
-      name: 'graphql-backend',
-      script: './dist/src/main.js',
-      env: {
-        NODE_ENV: 'production',
-      },
+      name: 'api-prod',
+      script: './dist/main.js',
+      instances: 'max',
+      exec_mode: 'cluster',
+      max_memory_restart: '512M',
     },
   ],
 }
