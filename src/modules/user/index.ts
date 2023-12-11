@@ -18,6 +18,7 @@ import {
   ChangePasswordInputType,
   GetUserByIdInputType,
   AddNewUserInputType,
+  EmailVerificationInputType,
 } from './input-types'
 
 const Users = [
@@ -38,6 +39,7 @@ const Users = [
   GetUserByIdInputType,
   AddNewUserInputType,
   UserList,
+  EmailVerificationInputType,
 ]
 
 export default Users

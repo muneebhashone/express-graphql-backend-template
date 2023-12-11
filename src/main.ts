@@ -14,7 +14,6 @@ import process from 'node:process'
 import path from 'node:path'
 import morgan from 'morgan'
 import cors from 'cors'
-import { LinkedinStrategyVerification } from './modules/oauth2/strategies'
 
 import { decode } from './utils/jwt.utils'
 import { createYoga } from 'graphql-yoga'
@@ -24,6 +23,8 @@ import { useEngine } from '@envelop/core'
 import { useGraphQlJit } from '@envelop/graphql-jit'
 
 import { initRealTimeServer } from './modules/chat/init-realtime'
+import { requireContext } from './middlewares/requireContext'
+import UserRouter from './modules/user/routes'
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -87,10 +88,6 @@ const boostrapServer = async () => {
     app.use(helmet())
   }
 
-  // const graphQLServer = new ApolloServer({
-  //   schema: schema,
-  //   plugins: [ApolloServerPluginDrainHttpServer({ httpServer: server })],
-  // })
   const graphQLServer = createYoga({
     schema,
     // @ts-ignore
@@ -103,7 +100,9 @@ const boostrapServer = async () => {
     ],
   })
 
-  // await graphQLServer.start()
+  app.use(requireContext(io))
+
+  app.use('/api/v1/users', UserRouter)
 
   app.use(
     '/api/graphql',
@@ -125,37 +124,10 @@ const boostrapServer = async () => {
     cb(null, obj)
   })
 
-  passport.use(LinkedinStrategyVerification)
-
-  app.get(
-    '/auth/linkedin',
-    passport.authenticate('linkedin', {
-      scope: ['r_emailaddress', 'r_liteprofile'],
-    })
-  )
-
-  app.get(
-    '/auth/linkedin/callback',
-    passport.authenticate('linkedin', {
-      failureRedirect: '/login',
-      session: false,
-    }),
-    (req, res) => {
-      console.log({ user: req.user })
-
-      // @ts-ignore
-      if (req.user.newProfile) {
-        return res.redirect(
-          // @ts-ignore
-          `${process.env.LINKEDIN_NEW_PROFILE_REDIRECT}?id=${req.user.profile.id}`
-        )
-      }
-      return res.redirect(
-        // @ts-ignore
-        `${process.env.LINKEDIN_OLD_PROFILE_REDIRECT}?id=${req.user.profile.id}`
-      )
-    }
-  )
+  // @ts-ignore
+  app.use((err, req, res, next) => {
+    res.status(400).json({ message: err.message })
+  })
 
   server.listen(process.env.PORT, () => {
     console.info(`Server is running on http://localhost:${process.env.PORT}`)

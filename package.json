@@ -6,9 +6,9 @@
   "scripts": {
     "dev": "ts-node-dev --respawn --poll --transpile-only ./src/main.ts",
     "seeder": "ts-node --transpile-only ./src/seeder.ts",
-    "build": "rimraf dist && npx tsc",
+    "build": "npx tsc",
     "build:es": "node build.js",
-    "start": "cross-env NODE_ENV=production node ./dist/src/main.js"
+    "start": "node ./dist/src/main.js"
   },
   "devDependencies": {
     "@types/cookie-parser": "^1.4.3",
@@ -40,7 +40,6 @@
     "typescript": "*"
   },
   "dependencies": {
-    "@apollo/server": "^4.7.0",
     "@envelop/core": "^4.0.0",
     "@envelop/graphql-jit": "^6.0.0",
     "@envelop/parser-cache": "^6.0.0",
@@ -53,9 +52,9 @@
     "connect-mongo": "^4.6.0",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
-    "cross-env": "^7.0.3",
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
+    "express-async-handler": "^1.2.0",
     "express-session": "^1.17.3",
     "graphql": "^16.6.0",
     "graphql-scalars": "^1.20.1",

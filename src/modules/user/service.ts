@@ -290,7 +290,9 @@ export const forgetPassword = async (
 export const changePassword = async (
   payload: NexusGenInputs['ChangePasswordInput']
 ): Promise<NexusGenObjects['User'] | any> => {
-  const { email, confirmPassword, password, otp } = payload
+  let { email, confirmPassword, password, token } = payload
+
+  token = decodeURIComponent(token)
 
   if (!email) {
     throw new GraphQLError('Something went wrong')
@@ -301,21 +303,26 @@ export const changePassword = async (
     throw new GraphQLError("Email doesn't exist")
   }
 
-  if (user.otp?.expired) {
+  if (user.passowrdResetToken?.expired) {
     throw new GraphQLError('Token is expired')
   }
 
   let expired = false
-  if (user.otp && user.otp.expiryTime) {
-    expired = new Date() > new Date(user.otp.expiryTime)
+  if (user.passowrdResetToken && user.passowrdResetToken.expiryTime) {
+    expired = new Date() > new Date(user.passowrdResetToken.expiryTime)
   }
 
   if (expired) {
     throw new GraphQLError('Token is expired')
   }
 
-  if (user.otp?.token !== otp) {
-    throw new GraphQLError('Incorrect Otp')
+  const isVerified = await comparePassword(
+    user?.passowrdResetToken?.token as string,
+    token
+  )
+
+  if (!isVerified) {
+    throw new GraphQLError('Incorrect Token')
   }
 
   if (password !== confirmPassword) {
@@ -326,7 +333,9 @@ export const changePassword = async (
 
   const updatedUser = await User.findByIdAndUpdate(
     user._id,
-    { $set: { otp: { expired: true }, password: hashedPassword } },
+    {
+      $set: { passowrdResetToken: { expired: true }, password: hashedPassword },
+    },
     { new: true }
   )
 
@@ -405,4 +414,78 @@ export const addNewUser = async (
   })
 
   return createdUser
+}
+
+export const verifyEmail = async (
+  payload: NexusGenInputs['EmailVerificationInputType']
+): Promise<NexusGenObjects['ReturnMessageObject'] | null> => {
+  let { email, token } = payload
+
+  token = decodeURIComponent(token)
+  email = decodeURIComponent(email)
+
+  const user = await User.findOne({ email: email })
+
+  if (!user) {
+    throw new GraphQLError("User doesn't exist")
+  }
+
+  if (
+    !(await comparePassword(
+      user?.emailVerificationToken?.token as string,
+      token as string
+    ))
+  ) {
+    throw new GraphQLError('Invalid or Expired Token')
+  }
+
+  const emailVerified = await User.findByIdAndUpdate(
+    user?._id,
+    {
+      $set: { emailVerified: new Date() },
+    },
+    {
+      new: true,
+    }
+  )
+
+  if (!emailVerified) {
+    throw new GraphQLError('Email Verification Failed')
+  }
+
+  return {
+    message: 'Email Verification Successfull',
+    status: 'success',
+  }
+}
+
+export const deleteUserById = async ({
+  ctx,
+  userIdInput,
+}: {
+  ctx: IContextType
+  userIdInput: NexusGenInputs['GetUserByIdInput']
+}): Promise<NexusGenObjects['ReturnMessageObject'] | any> => {
+  try {
+    if (!ctx.user._id) {
+      throw new GraphQLError('Unauthorized')
+    }
+
+    const { userId } = userIdInput
+
+    const user = await User.findById(userId)
+
+    if (!user) {
+      throw new GraphQLError('No user found')
+    }
+
+    const deletedUser = await User.findByIdAndDelete(userId)
+    if (deletedUser)
+      return {
+        message: 'User successfully Deleted',
+        status: 'success',
+      }
+  } catch (err: any) {
+    throw new GraphQLError(err.message)
+  }
 }
