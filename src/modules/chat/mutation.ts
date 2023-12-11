@@ -12,7 +12,6 @@ export const ChatMutation = extendType({
   definition(t) {
     t.nonNull.field('sendMessage', {
       type: MessageObjectType,
-      // @ts-ignore
       args: { data: nonNull(MessageInputType) },
       async resolve(_, args, ctx) {
         return sendMessage({ ctx: ctx, payload: args.data })

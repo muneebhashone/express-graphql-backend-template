@@ -21,10 +21,15 @@ import { createYoga } from 'graphql-yoga'
 import { execute, parse, specifiedRules, subscribe, validate } from 'graphql'
 import { useEngine } from '@envelop/core'
 import { useGraphQlJit } from '@envelop/graphql-jit'
+import { useResponseCache } from '@envelop/response-cache'
+import { createRedisCache } from '@envelop/response-cache-redis'
 
-import { initRealTimeServer } from './modules/chat/init-realtime'
+import { initRealTimeServer } from './lib/init-realtime'
 import { requireContext } from './middlewares/requireContext'
 import UserRouter from './modules/user/routes'
+import redisClient from './lib/redis'
+
+const responseCache = createRedisCache({ redis: redisClient })
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -42,7 +47,7 @@ const boostrapServer = async () => {
   const app = express()
   const server = createServer(app)
 
-  const [io, activeUsers] = initRealTimeServer(server)
+  const io = await initRealTimeServer(server)
 
   await connectToDatabase()
 
@@ -59,12 +64,6 @@ const boostrapServer = async () => {
 
   app.post('/api/upload_files', upload.array('files'), function (req, res) {
     res.json({ files: req.files })
-  })
-
-  app.get('/api/active-users/:eventId', async (req: Request, res: Response) => {
-    const eventId = req.params.eventId
-
-    res.json(activeUsers.filter((user) => user.eventId === eventId))
   })
 
   app.use((req: Request, res: Response, next: NextFunction) => {
@@ -97,6 +96,12 @@ const boostrapServer = async () => {
     plugins: [
       useEngine({ parse, validate, specifiedRules, execute, subscribe }),
       useGraphQlJit(),
+      useResponseCache({
+        cache: responseCache,
+        session(context) {
+          return context?.user?._id
+        },
+      }),
     ],
   })
 
@@ -138,4 +143,7 @@ const boostrapServer = async () => {
   })
 }
 
-boostrapServer()
+boostrapServer().catch((err) => {
+  console.log(err.message)
+  process.exit(1)
+})
