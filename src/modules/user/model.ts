@@ -1,7 +1,13 @@
 import { GenderType, Role, RoleType } from './../enums'
-import mongoose, { Types, Model } from 'mongoose'
+import mongoose, { Types, Model, SchemaDefinitionProperty } from 'mongoose'
 
-export type IOtp = { expiryTime: Date; token: number; expired: boolean }
+export type IBaseVerificationToken = {
+  expiryTime: Date
+  token: string
+  expired: boolean
+}
+export interface IPasswordResetToken extends IBaseVerificationToken {}
+export interface IEmailVerificationToken extends IBaseVerificationToken {}
 export interface IUser {
   _id: string
   firstName: string
@@ -20,27 +26,39 @@ export interface IUser {
   bio: string
   password: string
   active: boolean
-  otp?: IOtp
+  passowrdResetToken?: IPasswordResetToken
+  emailVerificationToken?: IEmailVerificationToken
 }
 
 export interface IUserDocument extends IUser, Document {}
 
 export interface IUserModel extends Model<IUserDocument> {}
 
-const OtpSchema = new mongoose.Schema<IOtp>({
-  expiryTime: {
-    type: Date,
-    required: true,
-  },
-  token: {
-    type: Number,
-    required: false,
-  },
-  expired: {
-    type: Boolean,
-    default: false,
-  },
-})
+const BaseVerificationTokenSchema = (args?: any) => {
+  let schema = new mongoose.Schema<IBaseVerificationToken>({
+    expiryTime: {
+      type: Date,
+      required: true,
+    },
+    token: {
+      type: String,
+      required: false,
+    },
+    expired: {
+      type: Boolean,
+      default: false,
+    },
+  })
+
+  if (args) {
+    schema.add(args)
+  }
+
+  return schema
+}
+
+const PasswordResetToken = BaseVerificationTokenSchema()
+const EmailVerificationToken = BaseVerificationTokenSchema()
 
 const UserSchema = new mongoose.Schema<IUserDocument, IUserModel>(
   {
@@ -60,7 +78,8 @@ const UserSchema = new mongoose.Schema<IUserDocument, IUserModel>(
     bio: { type: String },
     password: { type: String },
     active: { type: Boolean },
-    otp: OtpSchema,
+    passowrdResetToken: PasswordResetToken,
+    emailVerificationToken: EmailVerificationToken,
   },
   { timestamps: true }
 )

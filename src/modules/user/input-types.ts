@@ -23,6 +23,15 @@ export const UserRegistrationInputType = inputObjectType({
   },
 })
 
+export const EmailVerificationInputType = inputObjectType({
+  name: 'EmailVerificationInputType',
+
+  definition(t) {
+    t.nonNull.string('token')
+    t.nonNull.string('email')
+  },
+})
+
 export const LoginInputType = inputObjectType({
   name: 'LoginInput',
   definition(t) {
@@ -69,7 +78,7 @@ export const ForgetPasswordInputType = inputObjectType({
 export const ChangePasswordInputType = inputObjectType({
   name: 'ChangePasswordInput',
   definition(t) {
-    t.nonNull.int('otp')
+    t.nonNull.string('token')
     t.nonNull.string('email')
     t.nonNull.string('password')
     t.nonNull.string('confirmPassword')

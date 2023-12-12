@@ -1,4 +1,4 @@
-FROM node:18
+FROM node:18-alpine as builder
 
 WORKDIR /app
 
@@ -6,10 +6,25 @@ COPY package.json package.json
 COPY package-lock.json package-lock.json
 
 RUN npm i --force
-RUN npm i pm2 -g
 
 COPY . .
 
-RUN npm run build:es
+RUN npm run build:es    
+
+FROM node:18-alpine as prod
+
+# Create app directory
+WORKDIR /app
+
+COPY --from=builder ./app/package.json ./package.json
+COPY --from=builder ./app/package-lock.json ./package-lock.json
+COPY --from=builder ./app/dist/ ./dist/
+COPY --from=builder ./app/json/ ./json/
+COPY --from=builder ./app/ecosystem.config.js ./ecosystem.config.js
+COPY --from=builder ./app/.env ./.env
+
+RUN npm ci --omit=dev --force
+
+RUN npm install pm2 -g
 
 CMD ["pm2-runtime", "ecosystem.config.js"]

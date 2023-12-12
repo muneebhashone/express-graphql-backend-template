@@ -1,14 +1,11 @@
-import { GraphQLError, graphql } from 'graphql'
-import Conversation, { IConversationDocument } from './conversation.model'
-import Message, { IMessageDocument } from './message.model'
-import User, { IUserDocument } from '../user/model'
-import { NexusGenInputs, NexusGenObjects } from 'nexus-typegen'
-import { IContextType, IPrivateMessage, IPublicMessage } from 'src/types'
-import mailer from '../../lib/mailer'
+import { GraphQLError } from 'graphql'
 import { FilterQuery } from 'mongoose'
-import { getPaginator, objectSanitizer } from '../../utils/common.utils'
-import { Model } from 'mongoose'
-import { ObjectId } from 'mongodb'
+import { NexusGenInputs, NexusGenObjects } from 'nexus-typegen'
+import { IContextType, IPrivateMessage } from 'src/types'
+import { objectSanitizer } from '../../utils/common.utils'
+import User from '../user/model'
+import Conversation, { IConversationDocument } from './conversation.model'
+import Message from './message.model'
 
 export const getPrivateConversations = async ({
   ctx,
